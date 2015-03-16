@@ -80,6 +80,8 @@ class Disque
           @nodes[prefix] = host
         end
 
+        @scout.quit
+
         break
 
       rescue *ECONN
