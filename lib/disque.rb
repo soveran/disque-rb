@@ -128,10 +128,28 @@ class Disque
     retry
   end
 
-  # TODO Complete signature with REPLY, DELAY, etc.
-  # TODO Determine if stats should be used for ADDJOB.
-  def push(queue_name, job, ms_timeout)
-    call("ADDJOB", queue_name, job, ms_timeout)
+  # Disque's ADDJOB signature is as follows:
+  #
+  #     ADDJOB queue_name job <ms-timeout>
+  #       [REPLICATE <count>]
+  #       [DELAY <sec>]
+  #       [RETRY <sec>]
+  #       [TTL <sec>]
+  #       [MAXLEN <count>]
+  #       [ASYNC]
+  #
+  # You can pass any optional arguments as a hash,
+  # for example:
+  #
+  #     disque.push("foo", "myjob", 1000, ttl: 1, async: true)
+  #
+  # Note that `async` is a special case because it's just a
+  # flag. That's why `true` must be passed as its value.
+  def push(queue_name, job, ms_timeout, options = {})
+    command = ["ADDJOB", queue_name, job, ms_timeout]
+    command += options_to_arguments(options)
+
+    call(*command)
   end
 
   def fetch(from: [], count: 1, timeout: 0)
@@ -160,5 +178,19 @@ class Disque
     end
 
     return jobs
+  end
+
+  def options_to_arguments(options)
+    arguments = []
+
+    options.each do |key, value|
+      if value == true
+        arguments.push(key)
+      else
+        arguments.push(key, value)
+      end
+    end
+
+    return arguments
   end
 end
