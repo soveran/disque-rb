@@ -106,6 +106,7 @@ class Disque
         host = @nodes[prefix]
 
         if host
+
           # Reconfigure main client
           @client.configure(url(host))
           @prefix = prefix
