@@ -32,14 +32,43 @@ module Runner
     @pids << spawn("disque-server --port #{port} --logfile disque.log", chdir: path)
   end
 
+  def self.cluster(ports)
+    first = ports[0]
+
+    ports.each do |port|
+      start(port)
+    end
+
+    ports.each do |port|
+      puts wait(port)
+      join(port, first) unless port == first
+    end
+
+    begin
+      nodes = connect(first).call("CLUSTER", "NODES").lines
+
+      count = nodes.grep(/ connected$/).size
+    end until count == ports.size
+  end
+
+  def self.connect(port)
+    Redic.new("disque://127.0.0.1:#{port}")
+  end
+
+  def self.join(port, other)
+    connect(port).call("CLUSTER", "MEET", "127.0.0.1", other)
+  end
+
   def self.wait(port)
     loop do
       begin
-        TCPSocket.new("127.0.0.1", port)
-        return
-      rescue Errno::ECONNREFUSED
-        sleep(0.1)
+        if connect(port).call("PING") == "PONG"
+          break
+        end
+      rescue Errno::ECONNREFUSED, Errno::EINVAL
       end
+
+      sleep(0.1)
     end
   end
 
@@ -69,12 +98,11 @@ DISQUE_NODES = [
 DISQUE_BAD_NODES  = DISQUE_NODES[0,1]
 DISQUE_GOOD_NODES = DISQUE_NODES[1,3]
 
-DISQUE_GOOD_NODES.each do |host|
-  port = Integer(host.split(":", 2).last)
-
-  Runner.start(port)
-  Runner.wait(port)
+ports = DISQUE_GOOD_NODES.map do |host|
+  Integer(host.split(":", 2).last)
 end
+
+Runner.cluster(ports)
 
 at_exit do
   Runner.shutdown
