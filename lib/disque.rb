@@ -156,7 +156,7 @@ class Disque
     pick_client!
 
     jobs = call(
-      "GETJOBS",
+      "GETJOB",
         "TIMEOUT", timeout,
         "COUNT", count,
         "FROM", *from)
