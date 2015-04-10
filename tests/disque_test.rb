@@ -1,5 +1,6 @@
 require_relative "../lib/disque"
 require "stringio"
+require "fileutils"
 
 module Silencer
   @output = nil
@@ -19,6 +20,41 @@ module Silencer
   end
 end
 
+module Runner
+  @pids = []
+
+  def self.start(port)
+    path = "tmp/instances/#{port}"
+
+    FileUtils.rm_rf(path)
+    FileUtils.mkdir_p(path)
+
+    @pids << spawn("disque-server --port #{port} --logfile disque.log", chdir: path)
+  end
+
+  def self.wait(port)
+    loop do
+      begin
+        TCPSocket.new("127.0.0.1", port)
+        return
+      rescue Errno::ECONNREFUSED
+        sleep(0.1)
+      end
+    end
+  end
+
+  def self.shutdown
+    @pids.each do |pid|
+      begin
+        Process.kill(:TERM, pid)
+      rescue Errno::ESRCH
+      end
+    end
+
+    Process.waitall
+  end
+end
+
 def say(str)
   printf("\n%s\n", str)
 end
@@ -32,6 +68,17 @@ DISQUE_NODES = [
 
 DISQUE_BAD_NODES  = DISQUE_NODES[0,1]
 DISQUE_GOOD_NODES = DISQUE_NODES[1,3]
+
+DISQUE_GOOD_NODES.each do |host|
+  port = Integer(host.split(":", 2).last)
+
+  Runner.start(port)
+  Runner.wait(port)
+end
+
+at_exit do
+  Runner.shutdown
+end
 
 test "raise if connection is not possible" do
   say "raise"
