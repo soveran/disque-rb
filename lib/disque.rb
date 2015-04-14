@@ -96,13 +96,10 @@ class Disque
 
   def pick_client!
     if @count == @cycle
-
       @count = 0
-
       prefix, _ = @stats.max { |a, b| a[1] <=> b[1] }
 
       if prefix != @prefix
-
         host = @nodes[prefix]
 
         if host
@@ -170,6 +167,7 @@ class Disque
         @stats[msgid[2,8]] += 1
 
         if block_given?
+
           # Process job
           yield(job, queue)
 
