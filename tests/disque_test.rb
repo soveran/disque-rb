@@ -290,3 +290,30 @@ test "federation" do
     assert_equal "j1", job
   end
 end
+
+test "ack jobs when block is given" do
+  c = Disque.new(DISQUE_GOOD_NODES)
+
+  c.push("q1", "j1", 1000)
+
+  id = nil
+
+  _, id, _ = c.fetch(from: ["q1"]) { |*a| }[0]
+
+  assert id
+  assert_equal nil, c.call("SHOW", id)
+end
+
+test "don't ack jobs when no block is given" do
+  c = Disque.new(DISQUE_GOOD_NODES)
+
+  c.push("q1", "j1", 1000)
+
+  _, id, _ = c.fetch(from: ["q1"])[0]
+
+  assert id
+
+  info = Hash[*c.call("SHOW", id)]
+
+  assert_equal info.fetch("state"), "active"
+end

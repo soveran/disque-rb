@@ -169,11 +169,13 @@ class Disque
         # Update stats
         @stats[msgid[2,8]] += 1
 
-        # Process job
-        yield(job, queue) if block_given?
+        if block_given?
+          # Process job
+          yield(job, queue)
 
-        # Remove job
-        call("ACKJOB", msgid)
+          # Remove job
+          call("ACKJOB", msgid)
+        end
       end
     end
 
