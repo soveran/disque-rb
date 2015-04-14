@@ -40,7 +40,6 @@ module Runner
     end
 
     ports.each do |port|
-      puts wait(port)
       join(port, first) unless port == first
     end
 
@@ -84,10 +83,6 @@ module Runner
   end
 end
 
-def say(str)
-  printf("\n%s\n", str)
-end
-
 DISQUE_NODES = [
   "127.0.0.1:7710",
   "127.0.0.1:7711",
@@ -109,7 +104,6 @@ at_exit do
 end
 
 test "raise if connection is not possible" do
-  say "raise"
   Silencer.start
   assert_raise(ArgumentError) do
     c = Disque.new(DISQUE_BAD_NODES)
@@ -120,7 +114,6 @@ test "raise if connection is not possible" do
 end
 
 test "retry until a connection is reached" do
-  say "retry"
   Silencer.start
   c = Disque.new(DISQUE_NODES)
   Silencer.stop
@@ -130,7 +123,6 @@ test "retry until a connection is reached" do
 end
 
 test "lack of jobs" do
-  say "lack"
   c = Disque.new(DISQUE_GOOD_NODES)
   reached = false
 
@@ -142,7 +134,6 @@ test "lack of jobs" do
 end
 
 test "one job" do
-  say "one"
   c = Disque.new(DISQUE_GOOD_NODES)
 
   c.push("foo", "bar", 1000)
@@ -153,7 +144,6 @@ test "one job" do
 end
 
 test "multiple jobs" do
-  say "multiple"
   c = Disque.new(DISQUE_GOOD_NODES)
 
   c.push("foo", "bar", 1000)
@@ -170,7 +160,6 @@ test "multiple jobs" do
 end
 
 test "multiple queues" do
-  say "multiple queues"
   c = Disque.new(DISQUE_GOOD_NODES)
 
   c.push("foo", "bar", 1000)
@@ -189,8 +178,6 @@ test "multiple queues" do
 end
 
 test "add jobs with other parameters" do
-  say "other parameters"
-
   c = Disque.new(DISQUE_GOOD_NODES)
 
   c.push("foo", "bar", 1000, async: true, ttl: 0)
@@ -210,7 +197,6 @@ test "add jobs with other parameters" do
 end
 
 test "connect to the best node" do
-  say "connect to the best node"
   c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2)
   c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2)
 
@@ -233,7 +219,6 @@ test "connect to the best node" do
 end
 
 test "connect to the best node, part 2" do
-  say "connect"
   c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2)
   c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2)
 
@@ -252,7 +237,6 @@ test "connect to the best node, part 2" do
 end
 
 test "recover after node disconnection" do
-  say "recover"
   c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2)
 
   prefix = c1.prefix
@@ -280,7 +264,6 @@ test "recover after node disconnection" do
 end
 
 test "federation" do
-  say "federation"
   c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2)
   c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2)
 
