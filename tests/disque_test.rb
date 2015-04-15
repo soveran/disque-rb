@@ -20,69 +20,6 @@ module Silencer
   end
 end
 
-module Runner
-  @pids = []
-
-  def self.start(port)
-    path = "tmp/instances/#{port}"
-
-    FileUtils.rm_rf(path)
-    FileUtils.mkdir_p(path)
-
-    @pids << spawn("disque-server --port #{port} --logfile disque.log", chdir: path)
-  end
-
-  def self.cluster(ports)
-    first = ports[0]
-
-    ports.each do |port|
-      start(port)
-    end
-
-    ports.each do |port|
-      join(port, first) unless port == first
-    end
-
-    begin
-      nodes = connect(first).call("CLUSTER", "NODES").lines
-
-      count = nodes.grep(/ connected$/).size
-    end until count == ports.size
-  end
-
-  def self.connect(port)
-    Redic.new("disque://127.0.0.1:#{port}")
-  end
-
-  def self.join(port, other)
-    connect(port).call("CLUSTER", "MEET", "127.0.0.1", other)
-  end
-
-  def self.wait(port)
-    loop do
-      begin
-        if connect(port).call("PING") == "PONG"
-          break
-        end
-      rescue Errno::ECONNREFUSED, Errno::EINVAL
-      end
-
-      sleep(0.1)
-    end
-  end
-
-  def self.shutdown
-    @pids.each do |pid|
-      begin
-        Process.kill(:TERM, pid)
-      rescue Errno::ESRCH
-      end
-    end
-
-    Process.waitall
-  end
-end
-
 DISQUE_NODES = [
   "127.0.0.1:7710",
   "127.0.0.1:7711",
@@ -92,16 +29,6 @@ DISQUE_NODES = [
 
 DISQUE_BAD_NODES  = DISQUE_NODES[0,1]
 DISQUE_GOOD_NODES = DISQUE_NODES[1,3]
-
-ports = DISQUE_GOOD_NODES.map do |host|
-  Integer(host.split(":", 2).last)
-end
-
-# Runner.cluster(ports)
-# 
-# at_exit do
-#   Runner.shutdown
-# end
 
 test "raise if connection is not possible" do
   Silencer.start
