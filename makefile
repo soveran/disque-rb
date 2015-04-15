@@ -10,8 +10,8 @@ default:
 	@echo make \[start\|meet\|stop\|list\]
 
 start: 7711 7712 7713
-	@disque -p 7712 CLUSTER MEET 127.0.0.1 7711
-	@disque -p 7713 CLUSTER MEET 127.0.0.1 7712
+	@disque -p 7712 CLUSTER MEET 127.0.0.1 7711 > /dev/null
+	@disque -p 7713 CLUSTER MEET 127.0.0.1 7712 > /dev/null
 
 stop:
 	@kill `cat $(DIR)/disque.*.pid`
