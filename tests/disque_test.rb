@@ -97,11 +97,11 @@ ports = DISQUE_GOOD_NODES.map do |host|
   Integer(host.split(":", 2).last)
 end
 
-Runner.cluster(ports)
-
-at_exit do
-  Runner.shutdown
-end
+# Runner.cluster(ports)
+# 
+# at_exit do
+#   Runner.shutdown
+# end
 
 test "raise if connection is not possible" do
   Silencer.start
