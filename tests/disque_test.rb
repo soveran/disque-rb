@@ -284,7 +284,15 @@ test "ack jobs when block is given" do
   _, id, _ = c.fetch(from: ["q1"]) { |*a| }[0]
 
   assert id
-  assert_equal nil, c.call("SHOW", id)
+
+  info = Hash[*c.call("SHOW", id)]
+
+  if info.any?
+
+    # If the test runs too fast, we may get the job
+    # with the status set to "acked"
+    assert_equal "acked", info.fetch("state")
+  end
 end
 
 test "don't ack jobs when no block is given" do
