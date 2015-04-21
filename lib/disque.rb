@@ -193,4 +193,8 @@ class Disque
 
     return arguments
   end
+
+  def quit
+    @client.quit
+  end
 end
