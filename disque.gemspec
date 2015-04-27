@@ -2,9 +2,9 @@
 
 Gem::Specification.new do |s|
   s.name              = "disque"
-  s.version           = "0.0.2"
+  s.version           = "0.0.3"
   s.summary           = "Client for Disque"
-  s.description       = "Disque for Ruby"
+  s.description       = "Disque client for Ruby"
   s.authors           = ["Michel Martens", "Damian Janowski"]
   s.email             = ["michel@soveran.com", "damian.janowski@gmail.com"]
   s.homepage          = "https://github.com/soveran/disque-rb"
