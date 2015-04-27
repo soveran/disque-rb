@@ -1,4 +1,4 @@
-Disque.rb
+disque-rb
 =========
 
 Client for Disque, an in-memory, distributed job queue.
