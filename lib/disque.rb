@@ -52,8 +52,8 @@ class Disque
     sprintf("disque://%s", host)
   end
 
-  # Collect the list of nodes by means of `CLUSTER NODES` and
-  # keep a connection to the node that provided that information.
+  # Collect the list of nodes and keep a connection to the
+  # node that provided that information.
   def explore!(hosts)
 
     # Reset nodes
@@ -63,21 +63,20 @@ class Disque
       begin
         @scout.configure(url(host))
 
-        @scout.call("CLUSTER", "NODES").lines do |line|
-          id, host, flag = line.split
+        result = @scout.call("HELLO")
 
-          prefix = id[0,8]
+        # For keeping track of nodes and stats, we use only the
+        # first eight characters of the node_id. That's because
+        # those eight characters are part of the job_ids, and
+        # our stats are based on that.
+        @prefix = result[1][0,8]
 
-          if flag == "myself"
+        # Connect the main client to the first node that replied
+        @client.configure(@scout.url)
 
-            # Configure main client
-            @client.configure(@scout.url)
-
-            # Keep track of selected node
-            @prefix = prefix
-          end
-
-          @nodes[prefix] = host
+        # Populate cache with the list of node and their hosts
+        result[2..-1].each do |node_id, hostname, port, priority|
+          @nodes[node_id[0,8]] = sprintf("%s:%s", hostname, port)
         end
 
         @scout.quit
