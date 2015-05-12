@@ -23,6 +23,7 @@ stop:
 		--daemonize yes \
 		--bind 127.0.0.1 \
 		--loglevel notice \
+		--requirepass test \
 		--pidfile disque.$@.pid \
 		--appendfilename disque.$@.aof \
 		--cluster-config-file disque.$@.nodes \

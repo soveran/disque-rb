@@ -22,7 +22,10 @@ class Disque
   #
   # TODO Account for authentication
   # TODO Account for timeout
-  def initialize(hosts, cycle: 1000)
+  def initialize(hosts, auth: nil, cycle: 1000)
+
+    # Cluster password
+    @auth = auth
 
     # Cycle length
     @cycle = cycle
@@ -49,7 +52,11 @@ class Disque
   end
 
   def url(host)
-    sprintf("disque://%s", host)
+    if @auth
+      sprintf("disque://:%s@%s", @auth, host)
+    else
+      sprintf("disque://%s", host)
+    end
   end
 
   # Collect the list of nodes and keep a connection to the
@@ -63,7 +70,7 @@ class Disque
       begin
         @scout.configure(url(host))
 
-        result = @scout.call("HELLO")
+        result = @scout.call!("HELLO")
 
         # For keeping track of nodes and stats, we use only the
         # first eight characters of the node_id. That's because
@@ -105,6 +112,8 @@ class Disque
 
           # Reconfigure main client
           @client.configure(url(host))
+
+          # Save current node prefix
           @prefix = prefix
 
           # Reset stats for this new connection
@@ -118,7 +127,7 @@ class Disque
   # connection is lost, new connections are tried
   # until all nodes become unavailable.
   def call(*args)
-    @client.call(*args)
+    @client.call!(*args)
   rescue *ECONN
     explore!(@nodes.values)
     retry

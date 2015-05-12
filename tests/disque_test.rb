@@ -33,24 +33,24 @@ DISQUE_GOOD_NODES = DISQUE_NODES[1,3]
 test "raise if connection is not possible" do
   Silencer.start
   assert_raise(ArgumentError) do
-    c = Disque.new(DISQUE_BAD_NODES)
+    c = Disque.new(DISQUE_BAD_NODES, auth: "test")
   end
   Silencer.stop
 
-  assert_equal "#<Errno::ECONNREFUSED: Can't connect to: disque://127.0.0.1:7710>\n", Silencer.output
+  assert_equal "#<Errno::ECONNREFUSED: Can't connect to: disque://:test@127.0.0.1:7710>\n", Silencer.output
 end
 
 test "retry until a connection is reached" do
   Silencer.start
-  c = Disque.new(DISQUE_NODES)
+  c = Disque.new(DISQUE_NODES, auth: "test")
   Silencer.stop
 
-  assert_equal "#<Errno::ECONNREFUSED: Can't connect to: disque://127.0.0.1:7710>\n", Silencer.output
+  assert_equal "#<Errno::ECONNREFUSED: Can't connect to: disque://:test@127.0.0.1:7710>\n", Silencer.output
   assert_equal "PONG", c.call("PING")
 end
 
 test "lack of jobs" do
-  c = Disque.new(DISQUE_GOOD_NODES)
+  c = Disque.new(DISQUE_GOOD_NODES, auth: "test")
   reached = false
 
   c.fetch(from: ["foo"], timeout: 1) do |job|
@@ -61,7 +61,7 @@ test "lack of jobs" do
 end
 
 test "one job" do
-  c = Disque.new(DISQUE_GOOD_NODES)
+  c = Disque.new(DISQUE_GOOD_NODES, auth: "test")
 
   c.push("foo", "bar", 1000)
 
@@ -71,7 +71,7 @@ test "one job" do
 end
 
 test "multiple jobs" do
-  c = Disque.new(DISQUE_GOOD_NODES)
+  c = Disque.new(DISQUE_GOOD_NODES, auth: "test")
 
   c.push("foo", "bar", 1000)
   c.push("foo", "baz", 1000)
@@ -87,7 +87,7 @@ test "multiple jobs" do
 end
 
 test "multiple queues" do
-  c = Disque.new(DISQUE_GOOD_NODES)
+  c = Disque.new(DISQUE_GOOD_NODES, auth: "test")
 
   c.push("foo", "bar", 1000)
   c.push("qux", "baz", 1000)
@@ -105,11 +105,11 @@ test "multiple queues" do
 end
 
 test "add jobs with other parameters" do
-  c = Disque.new(DISQUE_GOOD_NODES)
+  c = Disque.new(DISQUE_GOOD_NODES, auth: "test")
 
-  c.push("foo", "bar", 1000, async: true, ttl: 0)
+  c.push("foo", "bar", 1000, async: true, ttl: 1)
 
-  sleep 0.1
+  sleep 2
 
   queues = ["foo"]
   jobs = ["bar"]
@@ -124,8 +124,8 @@ test "add jobs with other parameters" do
 end
 
 test "connect to the best node" do
-  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2)
-  c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2)
+  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2, auth: "test")
+  c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2, auth: "test")
 
   assert c1.prefix != c2.prefix
 
@@ -146,8 +146,8 @@ test "connect to the best node" do
 end
 
 test "connect to the best node, part 2" do
-  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2)
-  c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2)
+  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2, auth: "test")
+  c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2, auth: "test")
 
   assert c1.prefix != c2.prefix
 
@@ -164,7 +164,7 @@ test "connect to the best node, part 2" do
 end
 
 test "recover after node disconnection" do
-  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2)
+  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2, auth: "test")
 
   prefix = c1.prefix
 
@@ -187,12 +187,12 @@ test "recover after node disconnection" do
   c1.fetch(from: ["q1"])
 
   # Prefix should stay the same
-  assert prefix == c1.prefix
+  assert_equal prefix, c1.prefix
 end
 
 test "federation" do
-  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2)
-  c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2)
+  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2, auth: "test")
+  c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2, auth: "test")
 
   c1.push("q1", "j1", 0)
 
@@ -202,7 +202,7 @@ test "federation" do
 end
 
 test "ack jobs when block is given" do
-  c = Disque.new(DISQUE_GOOD_NODES)
+  c = Disque.new(DISQUE_GOOD_NODES, auth: "test")
 
   c.push("q1", "j1", 1000)
 
@@ -223,7 +223,7 @@ test "ack jobs when block is given" do
 end
 
 test "don't ack jobs when no block is given" do
-  c = Disque.new(DISQUE_GOOD_NODES)
+  c = Disque.new(DISQUE_GOOD_NODES, auth: "test")
 
   c.push("q1", "j1", 1000)
 
