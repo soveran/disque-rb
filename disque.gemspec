@@ -11,5 +11,5 @@ Gem::Specification.new do |s|
   s.files             = `git ls-files`.split("\n")
   s.license           = "MIT"
 
-  s.add_dependency "redic"
+  s.add_dependency "redic", "~> 1.5.0"
 end
