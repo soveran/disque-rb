@@ -20,7 +20,6 @@ class Disque
   # the stats are checked to see what is the most convenient node
   # to connect to in order to avoid extra jumps.
   #
-  # TODO Account for authentication
   # TODO Account for timeout
   def initialize(hosts, auth: nil, cycle: 1000)
 
