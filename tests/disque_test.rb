@@ -235,3 +235,12 @@ test "don't ack jobs when no block is given" do
 
   assert_equal info.fetch("state"), "active"
 end
+
+test "receive a string of comma-separated nodes" do
+  nodes = DISQUE_GOOD_NODES.join(",")
+
+  c = Disque.new(nodes, auth: "test")
+
+  assert_equal "PONG", c.call("PING")
+  assert_equal DISQUE_GOOD_NODES.size, c.nodes.size
+end

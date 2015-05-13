@@ -14,6 +14,11 @@ class Disque
   #
   #   Disque.new(["127.0.0.1:7711", "127.0.0.1:7712", "127.0.0.1:7713"])
   #
+  # Alternatively, you can pass a single string with a comma-separated
+  # list of nodes:
+  #
+  #   Disque.new("127.0.0.1:7711,127.0.0.1:7712,127.0.0.1:7713")
+  #
   # For each operation, a counter is updated to signal which node was
   # the originator of the message. Based on that information, after
   # a full cycle (1000 operations, but configurable on initialization)
@@ -22,6 +27,11 @@ class Disque
   #
   # TODO Account for timeout
   def initialize(hosts, auth: nil, cycle: 1000)
+
+    # Split a string of hosts if necessary
+    if String === hosts
+      hosts = hosts.split(",")
+    end
 
     # Cluster password
     @auth = auth
