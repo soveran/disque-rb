@@ -1,3 +1,7 @@
+0.0.5
+
+- Change API to receive a string of nodes
+
 0.0.4
 
 - Add AUTH option.
