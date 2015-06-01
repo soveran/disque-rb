@@ -42,6 +42,8 @@ class Disque
     # Operations counter
     @count = 0
 
+    @hosts = hosts
+
     # Known nodes
     @nodes = Hash.new
 
@@ -57,7 +59,7 @@ class Disque
     # Preferred client prefix
     @prefix = nil
 
-    explore!(hosts)
+    explore!
   end
 
   def url(host)
@@ -70,12 +72,12 @@ class Disque
 
   # Collect the list of nodes and keep a connection to the
   # node that provided that information.
-  def explore!(hosts)
+  def explore!
 
     # Reset nodes
     @nodes.clear
 
-    hosts.each do |host|
+    @hosts.each do |host|
       begin
         @scout.configure(url(host))
 
@@ -87,17 +89,13 @@ class Disque
         # our stats are based on that.
         @prefix = result[1][0,8]
 
-        # Connect the main client to the first node that replied
+        # Populate cache
+        @nodes[@prefix] = host
+
+        # Connect the main client to the last scouted node
         @client.configure(@scout.url)
 
-        # Populate cache with the list of node and their hosts
-        result[2..-1].each do |node_id, hostname, port, priority|
-          @nodes[node_id[0,8]] = sprintf("%s:%s", hostname, port)
-        end
-
         @scout.quit
-
-        break
 
       rescue *ECONN
         $stderr.puts($!.inspect)
@@ -138,7 +136,7 @@ class Disque
   def call(*args)
     @client.call!(*args)
   rescue *ECONN
-    explore!(@nodes.values)
+    explore!
     retry
   end
 

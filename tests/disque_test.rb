@@ -124,7 +124,7 @@ test "add jobs with other parameters" do
 end
 
 test "connect to the best node" do
-  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2, auth: "test")
+  c1 = Disque.new([DISQUE_GOOD_NODES[1], DISQUE_GOOD_NODES[0]], cycle: 2, auth: "test")
   c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2, auth: "test")
 
   assert c1.prefix != c2.prefix
@@ -146,8 +146,8 @@ test "connect to the best node" do
 end
 
 test "connect to the best node, part 2" do
-  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2, auth: "test")
-  c2 = Disque.new([DISQUE_GOOD_NODES[1]], cycle: 2, auth: "test")
+  c1 = Disque.new([DISQUE_GOOD_NODES[1], DISQUE_GOOD_NODES[0]], cycle: 2, auth: "test")
+  c2 = Disque.new([DISQUE_GOOD_NODES[0], DISQUE_GOOD_NODES[1]], cycle: 2, auth: "test")
 
   assert c1.prefix != c2.prefix
 
@@ -164,7 +164,11 @@ test "connect to the best node, part 2" do
 end
 
 test "recover after node disconnection" do
-  c1 = Disque.new([DISQUE_GOOD_NODES[0]], cycle: 2, auth: "test")
+  Silencer.start
+
+  c1 = Disque.new([DISQUE_GOOD_NODES[0], DISQUE_BAD_NODES[0]], cycle: 2, auth: "test")
+
+  Silencer.stop
 
   prefix = c1.prefix
 
@@ -178,6 +182,8 @@ test "recover after node disconnection" do
     key != "fake"
   end
 
+  Silencer.start
+
   c1.push("q1", "j1", 1000)
   c1.push("q1", "j2", 1000)
   c1.push("q1", "j3", 1000)
@@ -186,8 +192,11 @@ test "recover after node disconnection" do
   c1.fetch(from: ["q1"])
   c1.fetch(from: ["q1"])
 
+  Silencer.stop
+
   # Prefix should stay the same
   assert_equal prefix, c1.prefix
+  assert_equal "#<Errno::ECONNREFUSED: Can't connect to: disque://:test@127.0.0.1:7710>\n", Silencer.output
 end
 
 test "federation" do
