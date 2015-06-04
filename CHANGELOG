@@ -1,3 +1,7 @@
+0.0.6
+
+- Limit exploration to initial node list
+
 0.0.5
 
 - Change API to receive a string of nodes

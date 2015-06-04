@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name              = "disque"
-  s.version           = "0.0.5"
+  s.version           = "0.0.6"
   s.summary           = "Client for Disque"
   s.description       = "Disque client for Ruby"
   s.authors           = ["Michel Martens", "Damian Janowski"]
